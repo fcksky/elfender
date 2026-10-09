@@ -1,0 +1,6 @@
+{
+  "name": "Elfender - Forja e Combate",
+  "description": "Jogo tático de defesa e invocação de monstros com sistema de forja alquímica de tropas, montagem de deck e combate em pistas estilo lane-defense.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
