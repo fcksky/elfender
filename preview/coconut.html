@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#0b1220}</style></head>
+<body><canvas id="c" width="1000" height="420"></canvas>
+<script type="module">
+import { renderUnitSprite, getCoconutLaunch, drawCoconutPod, ELFO_ATTACK_WINDUP_MS } from '/src/utils/unitSprites.tsx';
+const c = document.getElementById('c'); const ctx = c.getContext('2d');
+const THROW = 2000;
+window.__T = null;
+const cols = [
+  { x: 140, label: 'Parado', mode: 'idle' },
+  { x: 430, label: 'Arremessando', mode: 'throw' },
+  { x: 800, label: 'Ferido (vida < 50%)', mode: 'hurt' },
+];
+function frame() {
+  const now = window.__T ?? performance.now();
+  ctx.fillStyle = '#3f8f2a'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(0, 300, c.width, 120);
+  const phase = now % THROW;
+  for (const col of cols) {
+    const size = 220, cx = col.x, cy = 190;
+    const o = { time: now, stars: 1 };
+    if (col.mode !== 'idle') {
+      o.attackWindup = Math.max(0, Math.min(1, (phase - (THROW - ELFO_ATTACK_WINDUP_MS)) / ELFO_ATTACK_WINDUP_MS));
+      o.sinceAttack = phase;
+    }
+    if (col.mode === 'hurt') { o.damaged = true; o.sinceHit = (now + 900) % THROW; }
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(cx - 20, cy + size * 0.5, size * 0.32, 13, 0, 0, Math.PI * 2); ctx.fill();
+    renderUnitSprite(ctx, 'coconut', 'player', cx, cy, size, o);
+    if (col.mode === 'throw' && phase < 1500) {
+      const l = getCoconutLaunch(size, { damaged: false, sinceAttack: 0 });
+      const x0 = cx + l.x, y0 = cy + l.y, tx = cx + 470, ty = cy + 60, u = phase / 1500;
+      drawCoconutPod(ctx, x0 + (tx - x0) * u, y0 + (ty - y0) * u - 160 * 4 * u * (1 - u), 70, phase * 0.012);
+    }
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(col.label, cx, 400);
+  }
+  requestAnimationFrame(frame);
+}
+frame();
+</script></body></html>

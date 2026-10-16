@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#0b1220}</style></head>
+<body><canvas id="c" width="900" height="420"></canvas>
+<script type="module">
+import { renderUnitSprite, getElfoMuzzle } from '/src/utils/unitSprites.tsx';
+const c = document.getElementById('c'); const ctx = c.getContext('2d');
+const PERIOD = 1800, WIND = 260;
+window.__T = null; // tempo controlado pelo capturador
+const cols = [
+  { x: 230, label: 'Saudável', damaged: false },
+  { x: 640, label: 'Ferida (vida < 50%)', damaged: true },
+];
+function frame() {
+  const now = window.__T ?? performance.now();
+  ctx.fillStyle = '#0f381e'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.fillStyle = 'rgba(0,0,0,0.14)'; ctx.fillRect(0, 300, c.width, 120);
+  const phase = now % PERIOD;
+  const since = phase; // tiro em phase = 0
+  const windup = Math.max(0, Math.min(1, (phase - (PERIOD - WIND)) / WIND));
+  for (const col of cols) {
+    const size = 230, cx = col.x, cy = 200;
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(cx, cy + size * 0.55, size * 0.38, 16, 0, 0, Math.PI * 2); ctx.fill();
+    const opts = { time: now, attackWindup: windup, sinceAttack: since, damaged: col.damaged, stars: 1 };
+    renderUnitSprite(ctx, 'sniper', 'player', cx, cy, size, opts);
+    // semente voando
+    const m = getElfoMuzzle(size, opts);
+    if (since < 700) {
+      const sx = cx + m.x + since * 0.35, sy = cy + m.y;
+      const r = 13; const g = ctx.createRadialGradient(sx - 4, sy - 4, 1, sx, sy, r);
+      g.addColorStop(0, '#fef9c3'); g.addColorStop(0.45, '#facc15'); g.addColorStop(1, '#a16207');
+      ctx.fillStyle = g; ctx.shadowColor = '#fde047'; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+    }
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(col.label, cx, 405);
+  }
+  requestAnimationFrame(frame);
+}
+frame();
+</script></body></html>

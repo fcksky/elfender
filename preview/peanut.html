@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#0b1220}</style></head>
+<body><canvas id="c" width="900" height="420"></canvas>
+<script type="module">
+import { renderUnitSprite } from '/src/utils/unitSprites.tsx';
+const c = document.getElementById('c'); const ctx = c.getContext('2d');
+const HIT = 1200;
+window.__T = null;
+const cols = [{ x: 230, label: 'Inteiro', damaged: false }, { x: 640, label: 'Rachado (vida < 50%)', damaged: true }];
+function frame() {
+  const now = window.__T ?? performance.now();
+  ctx.fillStyle = '#0f381e'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.fillStyle = 'rgba(0,0,0,0.14)'; ctx.fillRect(0, 300, c.width, 120);
+  const sinceHit = now % HIT;
+  for (const col of cols) {
+    const size = 250, cx = col.x, cy = 190;
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(cx, cy + size * 0.52, size * 0.36, 14, 0, 0, Math.PI * 2); ctx.fill();
+    renderUnitSprite(ctx, 'peanut', 'player', cx, cy, size, { time: now, sinceHit, damaged: col.damaged, stars: 1 });
+    if (sinceHit < 500) { ctx.globalAlpha = 1 - sinceHit / 500; ctx.fillStyle = '#ef4444'; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center'; ctx.strokeStyle = '#000'; ctx.lineWidth = 4; ctx.strokeText('26', cx + 90, cy - 110 - sinceHit * 0.06); ctx.fillText('26', cx + 90, cy - 110 - sinceHit * 0.06); ctx.globalAlpha = 1; }
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(col.label, cx, 405);
+  }
+  requestAnimationFrame(frame);
+}
+frame();
+</script></body></html>

@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#0b1220}</style></head>
+<body><canvas id="c" width="1000" height="400"></canvas>
+<script type="module">
+import { renderUnitSprite, ELFO_ATTACK_WINDUP_MS } from '/src/utils/unitSprites.tsx';
+const c = document.getElementById('c'); const ctx = c.getContext('2d');
+const BITE = 1200;
+window.__T = null;
+const cols = [
+  { x: 130, label: 'Parado', mode: 'idle' },
+  { x: 380, label: 'Andando', mode: 'walk' },
+  { x: 630, label: 'Mordendo', mode: 'bite' },
+  { x: 870, label: 'Ferido (vida < 50%)', mode: 'hurt' },
+];
+function frame() {
+  const now = window.__T ?? performance.now();
+  ctx.fillStyle = '#3f8f2a'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(0, 300, c.width, 100);
+  const phase = now % BITE;
+  for (const col of cols) {
+    const size = 210, cx = col.x, cy = 190;
+    const o = { time: now, stars: 1 };
+    if (col.mode === 'walk') o.isMoving = true;
+    if (col.mode === 'bite' || col.mode === 'hurt') {
+      const timer = phase; // ataque a cada BITE ms
+      o.attackWindup = Math.max(0, Math.min(1, (timer - (BITE - ELFO_ATTACK_WINDUP_MS)) / ELFO_ATTACK_WINDUP_MS));
+      o.sinceAttack = phase;
+    }
+    if (col.mode === 'hurt') { o.damaged = true; o.sinceHit = (now + 600) % BITE; }
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(cx, cy + size * 0.36, size * 0.3, 12, 0, 0, Math.PI * 2); ctx.fill();
+    renderUnitSprite(ctx, 'melee', 'player', cx, cy, size, o);
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(col.label, cx, 385);
+  }
+  requestAnimationFrame(frame);
+}
+frame();
+</script></body></html>
